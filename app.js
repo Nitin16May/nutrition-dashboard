@@ -55,6 +55,20 @@ async function initApp() {
   if (isInitialized) return;
   isInitialized = true;
 
+  // Parse URL query parameters to allow auto-login or custom configs (e.g. ?id=nitin)
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramId = urlParams.get('id');
+  const paramUrl = urlParams.get('url');
+  const paramKey = urlParams.get('key');
+
+  if (paramUrl && paramKey) {
+    reinitializeSupabase(paramUrl, paramKey);
+  }
+  if (paramId) {
+    state.supabaseId = paramId;
+    localStorage.setItem('supabase_id', paramId);
+  }
+
   // Apply initial theme class
   if (state.theme === 'light') {
     document.documentElement.classList.add('light-mode');
