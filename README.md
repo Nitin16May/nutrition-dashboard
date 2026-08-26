@@ -16,30 +16,16 @@ To store your entries, you need a free Supabase account. Follow these steps to p
    - Go to [supabase.com](https://supabase.com/) and create a new project.
    - Note down your **Project URL** and **API Public/Anon Key** from your Project Settings -> API.
 
-2. **Create the Database Tables:**
+2. **Create the Database Table:**
    - In your Supabase Dashboard, navigate to the **SQL Editor** on the left menu.
-   - Click **New Query** and copy-paste the SQL script below to create the necessary tables (`nutrition_entries` and `user_profiles`) and enable Row Level Security (RLS) policies:
+   - Click **New Query** and copy-paste the SQL script below to create the single necessary table (`nutrition_entries`) and enable Row Level Security (RLS) policies.
+   - *Note: User biometrics (name, age, weight, goals) are stored safely on each device via `localStorage`.*
 
 ```sql
--- 1. Create the user profiles table
-CREATE TABLE IF NOT EXISTS public.user_profiles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    supabase_id TEXT UNIQUE NOT NULL, -- The identifier you enter in the app (e.g. nitin)
-    name TEXT, -- Your display name
-    age INTEGER NOT NULL,
-    height NUMERIC NOT NULL, -- in cm
-    weight NUMERIC NOT NULL, -- in kg
-    gender TEXT NOT NULL CHECK (gender IN ('male', 'female')),
-    activity_level TEXT NOT NULL CHECK (activity_level IN ('sedentary', 'lightly_active', 'moderately_active', 'very_active')),
-    goal TEXT NOT NULL CHECK (goal IN ('lose', 'maintain', 'gain')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, now()) NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, now()) NOT NULL
-);
-
--- 2. Create the nutrition entries table (holds logged food and supplement entries)
+-- 1. Create the nutrition entries table (holds logged food and supplement entries)
 CREATE TABLE IF NOT EXISTS public.nutrition_entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id TEXT NOT NULL, -- Links to your supabase_id
+    user_id TEXT NOT NULL, -- Links to your supabase_id (e.g. nitin)
     item TEXT NOT NULL,
     quantity NUMERIC NOT NULL,
     quantity_unit TEXT NOT NULL,
@@ -104,15 +90,10 @@ CREATE TABLE IF NOT EXISTS public.nutrition_entries (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, now()) NOT NULL
 );
 
--- 3. Enable Row Level Security (RLS) on both tables
-ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+-- 2. Enable Row Level Security (RLS) on the table
 ALTER TABLE public.nutrition_entries ENABLE ROW LEVEL SECURITY;
 
--- 4. Enable public read/write access policies based on RLS (makes database accessible to client-side API)
-CREATE POLICY "Allow public read of profiles" ON public.user_profiles FOR SELECT USING (true);
-CREATE POLICY "Allow public insert of profiles" ON public.user_profiles FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update of profiles" ON public.user_profiles FOR UPDATE USING (true) WITH CHECK (true);
-
+-- 3. Enable public read/write access policies (makes database accessible to client-side API)
 CREATE POLICY "Allow public read of entries" ON public.nutrition_entries FOR SELECT USING (true);
 CREATE POLICY "Allow public insert of entries" ON public.nutrition_entries FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update of entries" ON public.nutrition_entries FOR UPDATE USING (true) WITH CHECK (true);
