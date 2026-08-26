@@ -278,6 +278,17 @@ function bindGlobalEvents() {
       const val = input.value.trim();
       if (!val) return;
       
+      // Handle login page custom connection parameters if present
+      const urlInput = document.getElementById('login-supabase-url');
+      const keyInput = document.getElementById('login-supabase-key');
+      if (urlInput && keyInput) {
+        const newUrl = urlInput.value.trim();
+        const newKey = keyInput.value.trim();
+        if (newUrl && newKey) {
+          reinitializeSupabase(newUrl, newKey);
+        }
+      }
+
       state.supabaseId = val;
       localStorage.setItem('supabase_id', val);
       state.loading = true;
@@ -537,6 +548,8 @@ function renderLoginPage() {
     ? `<i data-lucide="moon"></i>`
     : `<i data-lucide="sun"></i>`;
 
+  const needsConfig = !supabaseUrl || !supabaseKey;
+
   return `
     <div class="login-wrapper">
       <div class="login-card glass-card" style="position: relative;">
@@ -557,7 +570,22 @@ function renderLoginPage() {
             <label for="supabase-id-input">Supabase User/Profile ID</label>
             <input type="text" id="supabase-id-input" class="input-field" placeholder="Enter your ID (e.g. nitin)" value="${state.supabaseId}" required>
           </div>
-          <button type="submit" class="btn-primary">Connect & View Dashboard</button>
+          
+          ${needsConfig ? `
+            <div style="margin-top: 16px; border-top: 1px solid rgba(128, 128, 128, 0.1); padding-top: 16px;">
+              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Connection required. Enter your Supabase credentials once:</p>
+              <div class="form-group">
+                <label for="login-supabase-url">Supabase Project URL</label>
+                <input type="text" id="login-supabase-url" class="input-field" placeholder="https://your-project.supabase.co" required>
+              </div>
+              <div class="form-group" style="margin-top: 10px;">
+                <label for="login-supabase-key">Supabase Publishable/Anon API Key</label>
+                <input type="text" id="login-supabase-key" class="input-field" placeholder="sb_publishable_..." required>
+              </div>
+            </div>
+          ` : ''}
+
+          <button type="submit" class="btn-primary" style="margin-top: 16px;">Connect & View Dashboard</button>
         </form>
       </div>
     </div>

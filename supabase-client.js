@@ -1,26 +1,27 @@
 // Supabase Client integration using ES Modules from CDN
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-// Default credentials (fallback)
-const DEFAULT_URL = 'https://bprkehilaayfrhcxyrtc.supabase.co';
-const DEFAULT_KEY = 'sb_publishable_8_tyzFQcB5j1FChrcSmRLg_CWPw8TwF';
+// Read config dynamically from localStorage (No hardcoded credentials)
+export let supabaseUrl = localStorage.getItem('supabase_url') || '';
+export let supabaseKey = localStorage.getItem('supabase_key') || '';
 
-// Read config dynamically from localStorage or fall back to defaults
-export let supabaseUrl = localStorage.getItem('supabase_url') || DEFAULT_URL;
-export let supabaseKey = localStorage.getItem('supabase_key') || DEFAULT_KEY;
-
-// Create active client instance
-export let supabase = createClient(supabaseUrl, supabaseKey);
+// Create active client instance if configured, otherwise null
+export let supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
 // Re-initialize client dynamically when configuration updates
 export function reinitializeSupabase(url, key) {
-  supabaseUrl = url || DEFAULT_URL;
-  supabaseKey = key || DEFAULT_KEY;
+  supabaseUrl = (url || '').trim();
+  supabaseKey = (key || '').trim();
   
-  localStorage.setItem('supabase_url', supabaseUrl);
-  localStorage.setItem('supabase_key', supabaseKey);
-  
-  supabase = createClient(supabaseUrl, supabaseKey);
+  if (supabaseUrl && supabaseKey) {
+    localStorage.setItem('supabase_url', supabaseUrl);
+    localStorage.setItem('supabase_key', supabaseKey);
+    supabase = createClient(supabaseUrl, supabaseKey);
+  } else {
+    localStorage.removeItem('supabase_url');
+    localStorage.removeItem('supabase_key');
+    supabase = null;
+  }
   cachedColumns = null; // Clear schema columns cache for new project connection
 }
 
@@ -28,6 +29,7 @@ export function reinitializeSupabase(url, key) {
 let cachedColumns = null;
 
 async function getNutritionColumns() {
+  if (!supabase) return [];
   if (cachedColumns) return cachedColumns;
   try {
     const { data, error } = await supabase
@@ -48,8 +50,11 @@ async function getNutritionColumns() {
 }
 
 // Fetch nutrition entries for a date range (ISO strings YYYY-MM-DD)
-// If supabaseId is provided, we filter by a user_id or supabase_id column if present.
 export async function fetchNutritionEntries(startDate, endDate, supabaseId) {
+  if (!supabase) {
+    console.warn("Supabase is not configured yet.");
+    return [];
+  }
   try {
     const columns = await getNutritionColumns();
     let query = supabase
@@ -80,8 +85,12 @@ export async function fetchNutritionEntries(startDate, endDate, supabaseId) {
 export async function fetchUserProfile(supabaseId) {
   if (!supabaseId) return null;
   
+  if (!supabase) {
+    console.warn("Supabase is not configured. Loading profile from localStorage.");
+    return getLocalProfile(supabaseId);
+  }
+
   try {
-    // Attempt to fetch from database
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
@@ -113,6 +122,11 @@ export async function saveUserProfile(profile) {
   
   // Always save to localStorage first as a reliable backup
   saveLocalProfile(profile);
+
+  if (!supabase) {
+    console.warn("Supabase is not configured. Profile stored locally.");
+    return profile;
+  }
 
   try {
     // Check if profile exists in db
