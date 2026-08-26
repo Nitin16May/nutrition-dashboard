@@ -182,105 +182,42 @@ Do not treat exceeding an RDA as harmful; use recognized ULs for safety warnings
 
 ## 🔌 Step 2.1: Supabase API Connector in ChatGPT (GPT Action Setup)
 
-To allow ChatGPT to write directly into your Supabase database:
+To allow ChatGPT to read and write directly to your Supabase project:
 
-1. In your **ChatGPT Custom GPT** or **ChatGPT Project**, click **Create New Action**.
-2. **Set up Authentication:**
-   - **Authentication Type:** `API Key`
-   - **Auth Type:** `Bearer`
-   - **Token:** Paste your **Supabase Anon API Key** here. (This handles the `Authorization: Bearer <key>` header automatically).
-3. **Copy-Paste the OpenAPI Schema:** Paste the following JSON schema into the **Schema** input box in ChatGPT (replace `bprkehilaayfrhcxyrtc` with your own project reference if you are using your own Supabase instance):
+1. **Create a GPT Action:** In your Custom GPT or ChatGPT Project, click **Create Action**.
+2. **Authorize Connection:** 
+   - Under **Authentication**, select **API Key**.
+   - Set **Auth Type** to **Custom**.
+   - Set **Header Name** to **`apikey`**.
+   - Set **API Key** to your **Supabase Anon Public API Key**.
+3. **Paste the OpenAPI Schema:** Paste this minimal JSON schema into the **Schema** field (replace `bprkehilaayfrhcxyrtc` with your own project reference if using your own Supabase instance):
 
 ```json
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Supabase Nutrition entries API",
-    "version": "1.0.0",
-    "description": "API for inserting and querying nutrition logs in Supabase."
+    "title": "Supabase Nutrition Database API",
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "https://bprkehilaayfrhcxyrtc.supabase.co/rest/v1",
-      "description": "Supabase REST API Server"
+      "url": "https://bprkehilaayfrhcxyrtc.supabase.co/rest/v1"
     }
   ],
   "paths": {
     "/nutrition_entries": {
       "get": {
-        "summary": "Retrieve daily nutrition entries",
+        "summary": "Retrieve nutrition entries",
         "operationId": "getNutritionEntries",
         "parameters": [
-          {
-            "name": "apikey",
-            "in": "query",
-            "required": true,
-            "description": "Supabase API key",
-            "schema": {
-              "type": "string",
-              "default": "sb_publishable_8_tyzFQcB5j1FChrcSmRLg_CWPw8TwF"
-            }
-          },
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": true,
-            "description": "Filter by user ID, formatted as eq.your_id (e.g. eq.nitin)",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "entry_date",
-            "in": "query",
-            "required": false,
-            "description": "Filter by entry date, formatted as eq.YYYY-MM-DD (e.g. eq.2026-08-26)",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "select",
-            "in": "query",
-            "required": false,
-            "description": "Columns to select (defaults to *)",
-            "schema": {
-              "type": "string",
-              "default": "*"
-            }
-          }
+          { "name": "entry_date", "in": "query", "schema": { "type": "string" } },
+          { "name": "select", "in": "query", "schema": { "type": "string", "default": "*" } }
         ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
-                }
-              }
-            }
-          }
-        }
+        "responses": { "200": { "description": "Success" } }
       },
       "post": {
-        "summary": "Insert a new food or supplement entry",
+        "summary": "Insert nutrition log entry",
         "operationId": "insertNutritionEntry",
-        "parameters": [
-          {
-            "name": "apikey",
-            "in": "query",
-            "required": true,
-            "description": "Supabase API key",
-            "schema": {
-              "type": "string",
-              "default": "sb_publishable_8_tyzFQcB5j1FChrcSmRLg_CWPw8TwF"
-            }
-          }
-        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -288,36 +225,23 @@ To allow ChatGPT to write directly into your Supabase database:
               "schema": {
                 "type": "object",
                 "properties": {
-                  "user_id": { "type": "string", "example": "nitin" },
-                  "item": { "type": "string", "example": "Yoga Bar Oats" },
-                  "quantity": { "type": "number", "example": 75 },
-                  "quantity_unit": { "type": "string", "example": "g" },
-                  "product_brand": { "type": "string", "example": "Yoga Bar" },
-                  "entry_date": { "type": "string", "format": "date", "example": "2026-08-26" },
-                  "calories_kcal": { "type": "number", "example": 305.25 },
-                  "protein_g": { "type": "number", "example": 23.25 },
-                  "carbohydrates_g": { "type": "number", "example": 28.5 },
-                  "fat_g": { "type": "number", "example": 11.25 },
-                  "water_ml": { "type": "number", "example": 0 },
-                  "dietary_fiber_g": { "type": "number", "example": 5.175 },
-                  "added_sugars_g": { "type": "number", "example": 0 },
-                  "total_sugars_g": { "type": "number", "example": 2.25 },
-                  "saturated_fat_g": { "type": "number", "example": 0 },
-                  "trans_fat_g": { "type": "number", "example": 0 },
-                  "cholesterol_mg": { "type": "number", "example": 0 },
-                  "sodium_mg": { "type": "number", "example": 128.55 },
-                  "calcium_mg": { "type": "number", "example": 0 }
+                  "item": { "type": "string" },
+                  "quantity": { "type": "number" },
+                  "quantity_unit": { "type": "string" },
+                  "product_brand": { "type": "string" },
+                  "product_name": { "type": "string" },
+                  "entry_date": { "type": "string", "format": "date" },
+                  "calories_kcal": { "type": "number" },
+                  "protein_g": { "type": "number" },
+                  "carbohydrates_g": { "type": "number" },
+                  "fat_g": { "type": "number" }
                 },
-                "required": ["user_id", "item", "quantity", "quantity_unit"]
+                "required": ["item", "quantity", "quantity_unit"]
               }
             }
           }
         },
-        "responses": {
-          "201": {
-            "description": "Created successfully"
-          }
-        }
+        "responses": { "201": { "description": "Created" } }
       }
     }
   }
