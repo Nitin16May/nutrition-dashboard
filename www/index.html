@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>FitMetrics - Cross-Platform Nutrition & Hydration Dashboard</title>
+  
+  <!-- SEO & Mobile Config Meta Tags -->
+  <meta name="description" content="Premium responsive daily, weekly, and monthly nutrition dashboard synced to Supabase data. Track calories, macros, and 40+ micros with custom targets.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- PWA Icons & Manifest -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="https://img.icons8.com/color/512/dumbbell.png">
+
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="./app.css?v=6">
+  
+  <!-- CDNs for External Libraries -->
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Lucide Icons for high-end SVG icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- Main Mounting Point for App State Engine -->
+  <div id="app-root" class="app-container">
+    <div class="loader-container">
+      <div class="spinner"></div>
+      <p style="color: var(--text-secondary); font-size: 14px; margin-top: 16px;">Loading FitMetrics App Engine...</p>
+    </div>
+  </div>
+
+  <!-- Toast Notification Wrapper -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Modal Overlay Wrapper for Food Breakdowns -->
+  <div id="modal-container"></div>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+
+  <!-- Main ES Module Application Script -->
+  <script type="module" src="./app.js?v=6"></script>
+</body>
+</html>

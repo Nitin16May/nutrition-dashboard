@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Local Environment / Configs
+.env
+.env.local
+.env.*.local
+capacitor.config.json.bak
+
+# IDEs & System files
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Android Build files
+/android/app/build
+/android/build
+/android/.gradle
+/android/local.properties
+/android/.idea
+*.apk
+*.aab
+
+# iOS Build files
+/ios/App/build
+/ios/App/Pods
+/ios/App/DerivedData
+*.xcarchive
