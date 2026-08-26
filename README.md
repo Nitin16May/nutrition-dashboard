@@ -100,10 +100,13 @@ CREATE TABLE IF NOT EXISTS public.nutrition_entries (
 -- 2. Enable Row Level Security (RLS) on the table
 ALTER TABLE public.nutrition_entries ENABLE ROW LEVEL SECURITY;
 
--- 3. Enable public read/write access policies (makes database accessible to client-side API)
-CREATE POLICY "Allow public read of entries" ON public.nutrition_entries FOR SELECT USING (true);
-CREATE POLICY "Allow public insert of entries" ON public.nutrition_entries FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update of entries" ON public.nutrition_entries FOR UPDATE USING (true) WITH CHECK (true);
+-- 3. Enable public SELECT (Read-Only) access for the Web App (via the public Anon Key)
+CREATE POLICY "Allow public read-only of entries" ON public.nutrition_entries FOR SELECT USING (true);
+
+-- Note: No INSERT, UPDATE, or DELETE policies are created for the public anon key.
+-- This keeps the database strictly READ-ONLY from the web app / public.
+-- To allow ChatGPT to write (INSERT) entries, configure the ChatGPT app/plugin using your
+-- private "service_role" API key (found in Supabase Settings -> API), which bypasses RLS policies.
 ```
 
 ---
