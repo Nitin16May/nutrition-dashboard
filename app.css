@@ -78,7 +78,6 @@ body {
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
-/* Glassmorphism utility card */
 .glass-card {
   background: var(--card-bg);
   backdrop-filter: blur(16px);
@@ -88,6 +87,12 @@ body {
   padding: 24px;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.15);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-normal), border-color var(--transition-normal);
+}
+
+@media (max-width: 480px) {
+  .glass-card {
+    padding: 16px;
+  }
 }
 
 :root:not(.light-mode) .glass-card {
@@ -204,7 +209,7 @@ body {
   padding: 14px 16px;
   color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 16px;
   transition: all var(--transition-fast);
 }
 
@@ -887,6 +892,16 @@ body {
 @media (min-width: 480px) {
   .form-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.form-group-full {
+  grid-column: span 1;
+}
+
+@media (min-width: 480px) {
+  .form-group-full {
+    grid-column: span 2;
   }
 }
 

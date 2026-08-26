@@ -869,7 +869,7 @@ function renderProfileForm() {
       <form id="profile-form">
         <h3 style="font-family: var(--font-heading); font-size: 16px; margin-bottom: 12px; color: var(--text-secondary);">User Information</h3>
         <div class="form-grid">
-          <div class="form-group" style="grid-column: span 2;">
+          <div class="form-group form-group-full">
             <label for="profile-name">Full Name / Display Name</label>
             <input type="text" id="profile-name" class="input-field" value="${nameVal}" placeholder="Enter your name" required>
           </div>
@@ -913,11 +913,11 @@ function renderProfileForm() {
 
         <h3 style="font-family: var(--font-heading); font-size: 16px; margin-top: 24px; margin-bottom: 12px; color: var(--text-secondary);">Supabase Project Configuration</h3>
         <div class="form-grid">
-          <div class="form-group" style="grid-column: span 2;">
+          <div class="form-group form-group-full">
             <label for="profile-supabase-url">Supabase Project URL</label>
             <input type="text" id="profile-supabase-url" class="input-field" value="${supabaseUrl}" placeholder="https://your-project.supabase.co" required>
           </div>
-          <div class="form-group" style="grid-column: span 2;">
+          <div class="form-group form-group-full">
             <label for="profile-supabase-key">Supabase Publishable/Anon API Key</label>
             <input type="text" id="profile-supabase-key" class="input-field" value="${supabaseKey}" placeholder="sb_publishable_..." required>
           </div>
