@@ -180,73 +180,15 @@ Do not treat exceeding an RDA as harmful; use recognized ULs for safety warnings
 
 ---
 
-## 🔌 Step 2.1: Supabase API Connector in ChatGPT (GPT Action Setup)
+## 🔌 Step 2.1: Supabase Integration inside ChatGPT
 
-To allow ChatGPT to read and write directly to your Supabase project:
+To connect your Supabase project database directly to ChatGPT without writing any APIs:
 
-1. **Create a GPT Action:** In your Custom GPT or ChatGPT Project, click **Create Action**.
-2. **Authorize Connection:** 
-   - Under **Authentication**, select **API Key**.
-   - Set **Auth Type** to **Custom**.
-   - Set **Header Name** to **`apikey`**.
-   - Set **API Key** to your **Supabase Anon Public API Key**.
-3. **Paste the OpenAPI Schema:** Paste this minimal JSON schema into the **Schema** field (replace `bprkehilaayfrhcxyrtc` with your own project reference if using your own Supabase instance):
+1. **Search in Plugins/GPTs:** In the ChatGPT Sidebar, go to **Explore GPTs** or the **Plugins Store**.
+2. **Install Supabase:** Search for the official **Supabase** app and click **Install / Connect**.
+3. **Login & Authorize:** Follow the prompt to log into your Supabase account, select your database project, and click **Authorize**. 
 
-```json
-{
-  "openapi": "3.0.0",
-  "info": {
-    "title": "Supabase Nutrition Database API",
-    "version": "1.0.0"
-  },
-  "servers": [
-    {
-      "url": "https://bprkehilaayfrhcxyrtc.supabase.co/rest/v1"
-    }
-  ],
-  "paths": {
-    "/nutrition_entries": {
-      "get": {
-        "summary": "Retrieve nutrition entries",
-        "operationId": "getNutritionEntries",
-        "parameters": [
-          { "name": "entry_date", "in": "query", "schema": { "type": "string" } },
-          { "name": "select", "in": "query", "schema": { "type": "string", "default": "*" } }
-        ],
-        "responses": { "200": { "description": "Success" } }
-      },
-      "post": {
-        "summary": "Insert nutrition log entry",
-        "operationId": "insertNutritionEntry",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "item": { "type": "string" },
-                  "quantity": { "type": "number" },
-                  "quantity_unit": { "type": "string" },
-                  "product_brand": { "type": "string" },
-                  "product_name": { "type": "string" },
-                  "entry_date": { "type": "string", "format": "date" },
-                  "calories_kcal": { "type": "number" },
-                  "protein_g": { "type": "number" },
-                  "carbohydrates_g": { "type": "number" },
-                  "fat_g": { "type": "number" }
-                },
-                "required": ["item", "quantity", "quantity_unit"]
-              }
-            }
-          }
-        },
-        "responses": { "201": { "description": "Created" } }
-      }
-    }
-  }
-}
-```
+*That's it! ChatGPT is now fully authorized to write food entries to your database.*
 
 ---
 
