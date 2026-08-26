@@ -25,29 +25,31 @@ To store your entries, you need a free Supabase account. Follow these steps to p
 -- 1. Create the nutrition entries table (holds logged food and supplement entries)
 CREATE TABLE IF NOT EXISTS public.nutrition_entries (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id TEXT NOT NULL, -- Links to your supabase_id (e.g. nitin)
     item TEXT NOT NULL,
     quantity NUMERIC NOT NULL,
     quantity_unit TEXT NOT NULL,
     product_brand TEXT,
+    product_name TEXT,
     entry_date DATE DEFAULT CURRENT_DATE NOT NULL,
     
-    -- Macros
+    -- Macros & Lipids
     calories_kcal NUMERIC DEFAULT 0,
     protein_g NUMERIC DEFAULT 0,
     carbohydrates_g NUMERIC DEFAULT 0,
     fat_g NUMERIC DEFAULT 0,
+    monounsaturated_fat_g NUMERIC DEFAULT 0,
+    polyunsaturated_fat_g NUMERIC DEFAULT 0,
+    saturated_fat_g NUMERIC DEFAULT 0,
+    trans_fat_g NUMERIC DEFAULT 0,
+    cholesterol_mg NUMERIC DEFAULT 0,
     
     -- Hydration & Fiber
     water_ml NUMERIC DEFAULT 0,
     dietary_fiber_g NUMERIC DEFAULT 0,
     
-    -- Limit Fats & Sugars
+    -- Sugars
     added_sugars_g NUMERIC DEFAULT 0,
     total_sugars_g NUMERIC DEFAULT 0,
-    saturated_fat_g NUMERIC DEFAULT 0,
-    trans_fat_g NUMERIC DEFAULT 0,
-    cholesterol_mg NUMERIC DEFAULT 0,
     
     -- Minerals
     calcium_mg NUMERIC DEFAULT 0,
@@ -80,15 +82,20 @@ CREATE TABLE IF NOT EXISTS public.nutrition_entries (
     vitamin_b12_ug NUMERIC DEFAULT 0,
     choline_mg NUMERIC DEFAULT 0,
     
-    -- Lipids & Audited items
-    omega_3_mg NUMERIC DEFAULT 0,
+    -- Audited items
+    omega3_mg NUMERIC DEFAULT 0, -- Matches active database column name
     epa_mg NUMERIC DEFAULT 0,
     dha_mg NUMERIC DEFAULT 0,
     alcohol_g NUMERIC DEFAULT 0,
     caffeine_mg NUMERIC DEFAULT 0,
     
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, now()) NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, now()) NOT NULL
 );
+
+-- Note: If you want to use the database with multiple profiles/users,
+-- you can optionally add a user_id column to filter rows by user:
+-- ALTER TABLE public.nutrition_entries ADD COLUMN user_id TEXT;
 
 -- 2. Enable Row Level Security (RLS) on the table
 ALTER TABLE public.nutrition_entries ENABLE ROW LEVEL SECURITY;
