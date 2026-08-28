@@ -58,7 +58,10 @@ export const getMicroTargets = (gender = 'male') => {
     total_sugars_g: 50,
     saturated_fat_g: 22,
     trans_fat_g: 2,
-    cholesterol_mg: 300
+    cholesterol_mg: 300,
+    omega3_mg: isMale ? 1600 : 1100,
+    polyunsaturated_fat_g: isMale ? 17 : 12,
+    monounsaturated_fat_g: 25
   };
 };
 
@@ -251,5 +254,15 @@ export const nutrientMetadata = {
   biotin_b7_ug: { label: 'Biotin (B7)', unit: 'µg', group: 'Vitamins' },
   folate_b9_ug: { label: 'Folate (B9)', unit: 'µg', group: 'Vitamins' },
   vitamin_b12_ug: { label: 'Vitamin B12', unit: 'µg', group: 'Vitamins' },
-  choline_mg: { label: 'Choline', unit: 'mg', group: 'Vitamins' }
+  choline_mg: { label: 'Choline', unit: 'mg', group: 'Vitamins' },
+  
+  // Limit Fats, Sugars, & Lipids
+  added_sugars_g: { label: 'Added Sugars', unit: 'g', group: 'Limit Fats/Sugars' },
+  total_sugars_g: { label: 'Total Sugars', unit: 'g', group: 'Limit Fats/Sugars' },
+  saturated_fat_g: { label: 'Saturated Fat', unit: 'g', group: 'Limit Fats/Sugars' },
+  trans_fat_g: { label: 'Trans Fat', unit: 'g', group: 'Limit Fats/Sugars' },
+  cholesterol_mg: { label: 'Cholesterol', unit: 'mg', group: 'Limit Fats/Sugars' },
+  omega3_mg: { label: 'Omega-3 Fatty Acids', unit: 'mg', group: 'Limit Fats/Sugars' },
+  polyunsaturated_fat_g: { label: 'Polyunsaturated Fat', unit: 'g', group: 'Limit Fats/Sugars' },
+  monounsaturated_fat_g: { label: 'Monounsaturated Fat', unit: 'g', group: 'Limit Fats/Sugars' }
 };
