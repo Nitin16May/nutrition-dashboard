@@ -673,6 +673,64 @@ function renderRatiosCard(totals, microTotals) {
     }
   }
 
+  const pufa = microTotals['polyunsaturated_fat_g'] || 0;
+  const o3mg = microTotals['omega3_mg'] || 0;
+  const o3g = o3mg / 1000;
+  const o6g = Math.max(0, pufa - o3g);
+  const o6o3Ratio = o3g > 0 ? (o6g / o3g) : 0;
+  
+  let o6o3Color = 'var(--text-muted)';
+  let o6o3Status = 'No Data';
+  if (o3mg > 0) {
+    if (o6o3Ratio >= 1.0 && o6o3Ratio <= 4.0) {
+      o6o3Color = '#10B981';
+      o6o3Status = 'Balanced';
+    } else if (o6o3Ratio <= 8.0) {
+      o6o3Color = '#F59E0B';
+      o6o3Status = 'Moderate';
+    } else {
+      o6o3Color = '#EF4444';
+      o6o3Status = 'Inflammatory';
+    }
+  }
+
+  const protein = totals['protein_g'] || 0;
+  const calories = totals['calories_kcal'] || 0;
+  const proteinDensity = calories > 0 ? ((protein * 100) / calories) : 0;
+  
+  let pDensityColor = 'var(--text-muted)';
+  let pDensityStatus = 'No Data';
+  if (calories > 0) {
+    if (proteinDensity >= 6.0) {
+      pDensityColor = '#10B981';
+      pDensityStatus = 'Anabolic';
+    } else if (proteinDensity >= 4.0) {
+      pDensityColor = '#F59E0B';
+      pDensityStatus = 'Moderate';
+    } else {
+      pDensityColor = '#EF4444';
+      pDensityStatus = 'Low Protein';
+    }
+  }
+
+  const fe = microTotals['iron_mg'] || 0;
+  const feZnRatio = zn > 0 ? (fe / zn) : 0;
+  
+  let feZnColor = 'var(--text-muted)';
+  let feZnStatus = 'No Data';
+  if (zn > 0) {
+    if (feZnRatio >= 0.5 && feZnRatio <= 1.5) {
+      feZnColor = '#10B981';
+      feZnStatus = 'Balanced';
+    } else if (feZnRatio < 0.5) {
+      feZnColor = '#F59E0B';
+      feZnStatus = 'Zinc Rich';
+    } else {
+      feZnColor = '#EF4444';
+      feZnStatus = 'Iron Rich';
+    }
+  }
+
   return `
     <div class="ratios-wrapper">
       <h3 class="ratios-title">
@@ -743,6 +801,72 @@ function renderRatiosCard(totals, microTotals) {
           <div class="ratio-breakdown">
             <span>Ca: ${Math.round(ca)} mg</span>
             <span>Mg: ${Math.round(mg)} mg</span>
+          </div>
+        </div>
+
+        <!-- Omega-6 / Omega-3 -->
+        <div class="ratio-card glass-card">
+          <div class="ratio-header">
+            <span class="ratio-label">Omega-6 / Omega-3</span>
+            <span class="ratio-badge" style="color: ${o6o3Color}; border-color: ${o6o3Color}33; background: ${o6o3Color}08">${o6o3Status}</span>
+          </div>
+          <div class="ratio-value-display">
+            <span class="ratio-num" style="color: ${o3mg > 0 ? o6o3Color : 'var(--text-muted)'}">${o3mg > 0 ? o6o3Ratio.toFixed(2) : '0.00'}</span>
+            <span class="ratio-target">Target: 1.00 - 4.00</span>
+          </div>
+          <div class="ratio-bar-wrapper">
+            <div class="ratio-bar-bg">
+              <div class="ratio-bar-fill" style="width: ${o3mg > 0 ? Math.min(100, (o6o3Ratio / 10.0) * 100) : 0}%; background-color: ${o6o3Color};"></div>
+            </div>
+            <div class="ratio-bar-marker-range" style="left: 10%; width: 30%;" title="Target Range (1.00 - 4.00)"></div>
+          </div>
+          <div class="ratio-breakdown">
+            <span>Ω-6: ${o6g.toFixed(2)} g</span>
+            <span>Ω-3: ${o3g.toFixed(2)} g</span>
+          </div>
+        </div>
+
+        <!-- Protein Density -->
+        <div class="ratio-card glass-card">
+          <div class="ratio-header">
+            <span class="ratio-label">Protein Density</span>
+            <span class="ratio-badge" style="color: ${pDensityColor}; border-color: ${pDensityColor}33; background: ${pDensityColor}08">${pDensityStatus}</span>
+          </div>
+          <div class="ratio-value-display">
+            <span class="ratio-num" style="color: ${calories > 0 ? pDensityColor : 'var(--text-muted)'}">${calories > 0 ? proteinDensity.toFixed(2) : '0.00'}</span>
+            <span class="ratio-target">Target: &ge; 6.00 g</span>
+          </div>
+          <div class="ratio-bar-wrapper">
+            <div class="ratio-bar-bg">
+              <div class="ratio-bar-fill" style="width: ${calories > 0 ? Math.min(100, (proteinDensity / 10.0) * 100) : 0}%; background-color: ${pDensityColor};"></div>
+            </div>
+            <div class="ratio-bar-marker" style="left: 60%;" title="Min Target (6.00 g)"></div>
+          </div>
+          <div class="ratio-breakdown">
+            <span>Prot: ${Math.round(protein)} g</span>
+            <span>per 100 kcal</span>
+          </div>
+        </div>
+
+        <!-- Iron / Zinc -->
+        <div class="ratio-card glass-card">
+          <div class="ratio-header">
+            <span class="ratio-label">Iron / Zinc</span>
+            <span class="ratio-badge" style="color: ${feZnColor}; border-color: ${feZnColor}33; background: ${feZnColor}08">${feZnStatus}</span>
+          </div>
+          <div class="ratio-value-display">
+            <span class="ratio-num" style="color: ${zn > 0 ? feZnColor : 'var(--text-muted)'}">${zn > 0 ? feZnRatio.toFixed(2) : '0.00'}</span>
+            <span class="ratio-target">Target: 0.50 - 1.50</span>
+          </div>
+          <div class="ratio-bar-wrapper">
+            <div class="ratio-bar-bg">
+              <div class="ratio-bar-fill" style="width: ${zn > 0 ? Math.min(100, (feZnRatio / 3.0) * 100) : 0}%; background-color: ${feZnColor};"></div>
+            </div>
+            <div class="ratio-bar-marker-range" style="left: 17%; width: 33%;" title="Target Range (0.50 - 1.50)"></div>
+          </div>
+          <div class="ratio-breakdown">
+            <span>Fe: ${fe.toFixed(1)} mg</span>
+            <span>Zn: ${zn.toFixed(1)} mg</span>
           </div>
         </div>
       </div>
