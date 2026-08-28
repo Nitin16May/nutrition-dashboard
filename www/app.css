@@ -1150,3 +1150,127 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* Ratios Component styling */
+.ratios-wrapper {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.ratios-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.ratios-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .ratios-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.ratio-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ratio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ratio-label {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.ratio-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  border: 1px solid currentColor;
+}
+
+.ratio-value-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.ratio-num {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ratio-target {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ratio-bar-wrapper {
+  position: relative;
+  height: 6px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.ratio-bar-bg {
+  width: 100%;
+  height: 100%;
+  background: rgba(128, 128, 128, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ratio-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--transition-normal) ease;
+}
+
+.ratio-bar-marker {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: 10px;
+  background: var(--text-muted);
+  transform: translateX(-50%);
+  opacity: 0.7;
+}
+
+.ratio-bar-marker-range {
+  position: absolute;
+  top: -2px;
+  height: 10px;
+  background: var(--color-brand-glow);
+  border-left: 1px solid var(--text-muted);
+  border-right: 1px solid var(--text-muted);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.ratio-breakdown {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+
