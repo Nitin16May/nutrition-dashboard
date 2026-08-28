@@ -36,8 +36,71 @@ const state = {
   historyEntries: [],
   selectedChartNutrient: 'calories_kcal',
   loading: false,
-  theme: localStorage.getItem('theme') || 'dark'
+  theme: localStorage.getItem('theme') || 'dark',
+  sortOrder: 'deficient'
 };
+
+const nutrientImportance = {
+  // Rank 1 (Critical Biomarkers)
+  water_ml: 1, dietary_fiber_g: 1, sodium_mg: 1, potassium_mg: 1, calcium_mg: 1, iron_mg: 1, zinc_mg: 1,
+  vitamin_d_ug: 1, vitamin_b12_ug: 1, vitamin_c_mg: 1, vitamin_a_ug: 1, saturated_fat_g: 1, added_sugars_g: 1,
+  
+  // Rank 2 (Mainstream Health Micros)
+  magnesium_mg: 2, folate_b9_ug: 2, vitamin_b6_mg: 2, vitamin_e_mg: 2, omega3_mg: 2, total_sugars_g: 2, cholesterol_mg: 2,
+  
+  // Rank 3 (Essential Trace Micros)
+  phosphorus_mg: 3, selenium_ug: 3, copper_mg: 3, manganese_mg: 3, iodine_ug: 3, vitamin_k_ug: 3,
+  vitamin_b3_mg: 3, vitamin_b5_mg: 3, vitamin_b1_mg: 3, vitamin_b2_mg: 3, choline_mg: 3,
+  
+  // Rank 4 (Other Lipids & Trace Elements)
+  biotin_b7_ug: 4, chromium_ug: 4, molybdenum_ug: 4, trans_fat_g: 4, monounsaturated_fat_g: 4,
+  polyunsaturated_fat_g: 4, epa_mg: 4, dha_mg: 4, caffeine_mg: 4, alcohol_g: 4
+};
+
+const getSeverityRank = (statusLabel) => {
+  if (statusLabel.includes('Danger') || statusLabel.includes('Deficient')) return 1; // Red / Purple / Critical
+  if (statusLabel.includes('High') || statusLabel.includes('Low') || statusLabel.includes('Fine') || statusLabel.includes('OK') || statusLabel.includes('Moderate')) return 2; // Yellow / Orange
+  return 3; // Green / Perfect / Normal / Balanced
+};
+
+function getSortedNutrientKeys(keys, microTotals, targets) {
+  return [...keys].sort((a, b) => {
+    const valA = microTotals[a] || 0;
+    const targetA = targets[a] || 0;
+    const metaA = nutrientMetadata[a] || { label: a, unit: '', group: 'Other' };
+    const statusA = getColorCode(a, valA, targetA);
+    const sevA = getSeverityRank(statusA.label);
+    const impA = nutrientImportance[a] || 99;
+    const labelA = metaA.label.toLowerCase();
+
+    const valB = microTotals[b] || 0;
+    const targetB = targets[b] || 0;
+    const metaB = nutrientMetadata[b] || { label: b, unit: '', group: 'Other' };
+    const statusB = getColorCode(b, valB, targetB);
+    const sevB = getSeverityRank(statusB.label);
+    const impB = nutrientImportance[b] || 99;
+    const labelB = metaB.label.toLowerCase();
+
+    const activeSort = state.sortOrder || 'deficient';
+
+    if (activeSort === 'deficient') {
+      if (sevA !== sevB) return sevA - sevB;
+      if (impA !== impB) return impA - impB;
+      return labelA.localeCompare(labelB);
+    } 
+    else if (activeSort === 'importance') {
+      if (impA !== impB) return impA - impB;
+      if (sevA !== sevB) return sevA - sevB;
+      return labelA.localeCompare(labelB);
+    } 
+    else if (activeSort === 'alphabetical') {
+      if (labelA !== labelB) return labelA.localeCompare(labelB);
+      if (sevA !== sevB) return sevA - sevB;
+      return impA - impB;
+    }
+    return 0;
+  });
+}
 
 // Toast notification
 function showToast(message) {
@@ -395,6 +458,14 @@ function bindGlobalEvents() {
     if (clickableCard) {
       const nutrient = clickableCard.dataset.nutrient;
       showNutrientBreakdown(nutrient);
+      return;
+    }
+
+    // Sorting buttons click
+    const sortBtn = e.target.closest('.sort-btn');
+    if (sortBtn) {
+      state.sortOrder = sortBtn.dataset.sort;
+      render();
       return;
     }
 
@@ -937,9 +1008,26 @@ function renderDailyDashboard() {
     `;
   };
 
+  const sortedKeys = getSortedNutrientKeys(Object.keys(microTotals), microTotals, state.targets);
+
   const microsHtml = `
+    <div class="sorting-controls-wrapper">
+      <span class="sorting-label">Sort Biomarkers:</span>
+      <div class="sort-btn-group">
+        <button class="sort-btn ${state.sortOrder === 'deficient' ? 'active' : ''}" data-sort="deficient" title="Deficiencies First (Red/Orange/Green)">
+          ⚠️ Deficient First
+        </button>
+        <button class="sort-btn ${state.sortOrder === 'importance' ? 'active' : ''}" data-sort="importance" title="Priority Health Biomarkers First">
+          ⭐ Importance
+        </button>
+        <button class="sort-btn ${state.sortOrder === 'alphabetical' ? 'active' : ''}" data-sort="alphabetical" title="Alphabetical order (A-Z)">
+          🔤 Alphabetical
+        </button>
+      </div>
+    </div>
+
     <div class="micro-grid">
-      ${Object.keys(microTotals).map(key => {
+      ${sortedKeys.map(key => {
         const val = microTotals[key];
         const target = state.targets[key] || 0;
         const meta = nutrientMetadata[key] || { label: key, unit: '', group: 'Other' };

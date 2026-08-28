@@ -1273,4 +1273,58 @@ body {
   color: var(--text-muted);
 }
 
+/* Sorting Controls */
+.sorting-controls-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: -4px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+}
+
+.sorting-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sort-btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.sort-btn {
+  background: rgba(128, 128, 128, 0.05);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sort-btn:hover {
+  background: rgba(128, 128, 128, 0.1);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.sort-btn.active {
+  background: var(--color-brand);
+  color: #ffffff;
+  border-color: var(--color-brand);
+  box-shadow: 0 4px 12px var(--color-brand-glow);
+}
+
+
 
