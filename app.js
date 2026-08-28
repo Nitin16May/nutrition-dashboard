@@ -614,6 +614,142 @@ function renderActiveTab() {
   }
 }
 
+// BIOMARKER RATIOS RENDERER
+function renderRatiosCard(totals, microTotals) {
+  const na = microTotals['sodium_mg'] || 0;
+  const k = microTotals['potassium_mg'] || 0;
+  const naKRatio = k > 0 ? (na / k) : 0;
+  
+  let naKColor = 'var(--text-muted)';
+  let naKStatus = 'No Data';
+  if (k > 0) {
+    if (naKRatio <= 1.0) {
+      naKColor = '#10B981';
+      naKStatus = 'Optimal';
+    } else if (naKRatio <= 1.5) {
+      naKColor = '#F59E0B';
+      naKStatus = 'Moderate';
+    } else {
+      naKColor = '#EF4444';
+      naKStatus = 'High Sodium';
+    }
+  }
+
+  const zn = microTotals['zinc_mg'] || 0;
+  const cu = microTotals['copper_mg'] || 0;
+  const znCuRatio = cu > 0 ? (zn / cu) : 0;
+  
+  let znCuColor = 'var(--text-muted)';
+  let znCuStatus = 'No Data';
+  if (cu > 0) {
+    if (znCuRatio >= 8.0 && znCuRatio <= 15.0) {
+      znCuColor = '#10B981';
+      znCuStatus = 'Balanced';
+    } else if (znCuRatio < 8.0) {
+      znCuColor = '#F59E0B';
+      znCuStatus = 'Copper Rich';
+    } else {
+      znCuColor = '#EF4444';
+      znCuStatus = 'Zinc Dominant';
+    }
+  }
+
+  const ca = microTotals['calcium_mg'] || 0;
+  const mg = microTotals['magnesium_mg'] || 0;
+  const caMgRatio = mg > 0 ? (ca / mg) : 0;
+  
+  let caMgColor = 'var(--text-muted)';
+  let caMgStatus = 'No Data';
+  if (mg > 0) {
+    if (caMgRatio >= 1.8 && caMgRatio <= 2.5) {
+      caMgColor = '#10B981';
+      caMgStatus = 'Balanced';
+    } else if (caMgRatio < 1.8) {
+      caMgColor = '#F59E0B';
+      caMgStatus = 'Magnesium Rich';
+    } else {
+      caMgColor = '#EF4444';
+      caMgStatus = 'Calcium Rich';
+    }
+  }
+
+  return `
+    <div class="ratios-wrapper">
+      <h3 class="ratios-title">
+        <i data-lucide="scale" style="color: var(--color-brand); flex-shrink: 0; width: 18px; height: 18px;"></i>
+        Biomarker Balance Ratios
+      </h3>
+      <div class="ratios-grid">
+        <!-- Sodium / Potassium -->
+        <div class="ratio-card glass-card">
+          <div class="ratio-header">
+            <span class="ratio-label">Sodium / Potassium</span>
+            <span class="ratio-badge" style="color: ${naKColor}; border-color: ${naKColor}33; background: ${naKColor}08">${naKStatus}</span>
+          </div>
+          <div class="ratio-value-display">
+            <span class="ratio-num" style="color: ${k > 0 ? naKColor : 'var(--text-muted)'}">${k > 0 ? naKRatio.toFixed(2) : '0.00'}</span>
+            <span class="ratio-target">Target: &lt; 1.00</span>
+          </div>
+          <div class="ratio-bar-wrapper">
+            <div class="ratio-bar-bg">
+              <div class="ratio-bar-fill" style="width: ${k > 0 ? Math.min(100, (naKRatio / 2.0) * 100) : 0}%; background-color: ${naKColor};"></div>
+            </div>
+            <div class="ratio-bar-marker" style="left: 50%;" title="Target Limit (1.00)"></div>
+          </div>
+          <div class="ratio-breakdown">
+            <span>Na: ${Math.round(na)} mg</span>
+            <span>K: ${Math.round(k)} mg</span>
+          </div>
+        </div>
+
+        <!-- Zinc / Copper -->
+        <div class="ratio-card glass-card">
+          <div class="ratio-header">
+            <span class="ratio-label">Zinc / Copper</span>
+            <span class="ratio-badge" style="color: ${znCuColor}; border-color: ${znCuColor}33; background: ${znCuColor}08">${znCuStatus}</span>
+          </div>
+          <div class="ratio-value-display">
+            <span class="ratio-num" style="color: ${cu > 0 ? znCuColor : 'var(--text-muted)'}">${cu > 0 ? znCuRatio.toFixed(2) : '0.00'}</span>
+            <span class="ratio-target">Target: 8.00 - 15.00</span>
+          </div>
+          <div class="ratio-bar-wrapper">
+            <div class="ratio-bar-bg">
+              <div class="ratio-bar-fill" style="width: ${cu > 0 ? Math.min(100, (znCuRatio / 20.0) * 100) : 0}%; background-color: ${znCuColor};"></div>
+            </div>
+            <div class="ratio-bar-marker-range" style="left: 40%; width: 35%;" title="Target Range (8.00 - 15.00)"></div>
+          </div>
+          <div class="ratio-breakdown">
+            <span>Zn: ${zn.toFixed(1)} mg</span>
+            <span>Cu: ${cu.toFixed(1)} mg</span>
+          </div>
+        </div>
+
+        <!-- Calcium / Magnesium -->
+        <div class="ratio-card glass-card">
+          <div class="ratio-header">
+            <span class="ratio-label">Calcium / Magnesium</span>
+            <span class="ratio-badge" style="color: ${caMgColor}; border-color: ${caMgColor}33; background: ${caMgColor}08">${caMgStatus}</span>
+          </div>
+          <div class="ratio-value-display">
+            <span class="ratio-num" style="color: ${mg > 0 ? caMgColor : 'var(--text-muted)'}">${mg > 0 ? caMgRatio.toFixed(2) : '0.00'}</span>
+            <span class="ratio-target">Target: 1.80 - 2.50</span>
+          </div>
+          <div class="ratio-bar-wrapper">
+            <div class="ratio-bar-bg">
+              <div class="ratio-bar-fill" style="width: ${mg > 0 ? Math.min(100, (caMgRatio / 4.0) * 100) : 0}%; background-color: ${caMgColor};"></div>
+            </div>
+            <div class="ratio-bar-marker-range" style="left: 45%; width: 17%;" title="Target Range (1.80 - 2.50)"></div>
+          </div>
+          <div class="ratio-breakdown">
+            <span>Ca: ${Math.round(ca)} mg</span>
+            <span>Mg: ${Math.round(mg)} mg</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 // DAILY DASHBOARD RENDER
 function renderDailyDashboard() {
   const totals = {
@@ -727,6 +863,8 @@ function renderDailyDashboard() {
         ${renderMacroRing('carbohydrates_g', 'Carbohydrates', totals.carbohydrates_g, 'g')}
         ${renderMacroRing('fat_g', 'Fats', totals.fat_g, 'g')}
       </div>
+
+      ${renderRatiosCard(totals, microTotals)}
 
       <div class="micro-accordion-wrapper">
         <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
