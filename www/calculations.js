@@ -118,7 +118,7 @@ export const getColorCode = (key, value, target) => {
     const pct = (value / target) * 100;
     if (key === 'calories_kcal') {
       if (pct > 130) {
-        return { color: 'var(--color-red)', label: 'Dangerously High', class: 'status-red' };
+        return { color: 'var(--color-purple)', label: 'Dangerously High', class: 'status-purple' };
       } else if (pct > 110) {
         return { color: 'var(--color-orange)', label: 'High but OK', class: 'status-orange' };
       }
@@ -128,7 +128,7 @@ export const getColorCode = (key, value, target) => {
       }
     } else { // carbohydrates_g and fat_g
       if (pct > 150) {
-        return { color: 'var(--color-red)', label: 'Dangerously High', class: 'status-red' };
+        return { color: 'var(--color-purple)', label: 'Dangerously High', class: 'status-purple' };
       } else if (pct > 120) {
         return { color: 'var(--color-orange)', label: 'High but OK', class: 'status-orange' };
       }
@@ -153,9 +153,9 @@ export const getColorCode = (key, value, target) => {
       };
     } else {
       return {
-        color: 'var(--color-red)',
+        color: 'var(--color-purple)',
         label: 'Dangerously High',
-        class: 'status-red'
+        class: 'status-purple'
       };
     }
   }
@@ -176,9 +176,9 @@ export const getColorCode = (key, value, target) => {
       };
     } else {
       return {
-        color: 'var(--color-red)',
+        color: 'var(--color-purple)',
         label: 'Dangerously High',
-        class: 'status-red'
+        class: 'status-purple'
       };
     }
   }
@@ -191,9 +191,9 @@ export const getColorCode = (key, value, target) => {
     // If we exceed the tolerable upper limit, it is scientifically dangerously high
     if (value > ul) {
       return {
-        color: 'var(--color-red)',
+        color: 'var(--color-purple)',
         label: 'Dangerously High',
-        class: 'status-red'
+        class: 'status-purple'
       };
     }
     // If we are above RDA target and below UL, it is a perfect safe range
