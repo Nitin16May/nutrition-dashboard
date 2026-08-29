@@ -110,9 +110,30 @@ export const calculateTargets = (profile) => {
   };
 };
 
-// Scientific Color coding logic based on actual value vs. targets and Upper Limits (UL)
 export const getColorCode = (key, value, target) => {
   if (!target) return { color: 'var(--text-primary)', label: 'Normal', class: '' };
+
+  // 0. Macro Over-consumption Limits (Calories, Carbs, Fats, Protein)
+  if (['calories_kcal', 'carbohydrates_g', 'fat_g', 'protein_g'].includes(key)) {
+    const pct = (value / target) * 100;
+    if (key === 'calories_kcal') {
+      if (pct > 130) {
+        return { color: 'var(--color-red)', label: 'Dangerously High', class: 'status-red' };
+      } else if (pct > 110) {
+        return { color: 'var(--color-orange)', label: 'High but OK', class: 'status-orange' };
+      }
+    } else if (key === 'protein_g') {
+      if (pct > 180) {
+        return { color: 'var(--color-orange)', label: 'High', class: 'status-orange' };
+      }
+    } else { // carbohydrates_g and fat_g
+      if (pct > 150) {
+        return { color: 'var(--color-red)', label: 'Dangerously High', class: 'status-red' };
+      } else if (pct > 120) {
+        return { color: 'var(--color-orange)', label: 'High but OK', class: 'status-orange' };
+      }
+    }
+  }
 
   // 1. Limit nutrients where LESS is better (Sugars, Saturated Fat, Trans Fat, Cholesterol)
   const isLimitNutrient = ['added_sugars_g', 'total_sugars_g', 'saturated_fat_g', 'trans_fat_g', 'cholesterol_mg'].includes(key);
