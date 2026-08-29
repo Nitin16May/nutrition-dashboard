@@ -37,7 +37,8 @@ const state = {
   selectedChartNutrient: 'calories_kcal',
   loading: false,
   theme: localStorage.getItem('theme') || 'dark',
-  sortOrder: 'deficient'
+  sortOrder: 'deficient',
+  dailySubTab: 'micros'
 };
 
 const nutrientImportance = {
@@ -469,6 +470,14 @@ function bindGlobalEvents() {
       return;
     }
 
+    // Daily sub-tabs click
+    const subTabBtn = e.target.closest('.sub-tab-btn');
+    if (subTabBtn) {
+      state.dailySubTab = subTabBtn.dataset.subtab;
+      render();
+      return;
+    }
+
     // Close Modal overlay
     if (e.target.closest('#close-modal-btn') || e.target.classList.contains('modal-overlay')) {
       closeModal();
@@ -706,6 +715,25 @@ function renderRatiosCard(totals, microTotals) {
     }
   }
 
+  const carbs = totals['carbohydrates_g'] || 0;
+  const fiber = microTotals['dietary_fiber_g'] || 0;
+  const carbFiberRatio = fiber > 0 ? (carbs / fiber) : 0;
+  
+  let carbFiberColor = 'var(--text-muted)';
+  let carbFiberStatus = 'No Data';
+  if (fiber > 0) {
+    if (carbFiberRatio <= 10.0) {
+      carbFiberColor = '#10B981';
+      carbFiberStatus = 'Optimal';
+    } else if (carbFiberRatio <= 15.0) {
+      carbFiberColor = '#F59E0B';
+      carbFiberStatus = 'Moderate';
+    } else {
+      carbFiberColor = '#EF4444';
+      carbFiberStatus = 'Low Fiber';
+    }
+  }
+
   const zn = microTotals['zinc_mg'] || 0;
   const cu = microTotals['copper_mg'] || 0;
   const znCuRatio = cu > 0 ? (zn / cu) : 0;
@@ -803,11 +831,7 @@ function renderRatiosCard(totals, microTotals) {
   }
 
   return `
-    <div class="ratios-wrapper">
-      <h3 class="ratios-title">
-        <i data-lucide="scale" style="color: var(--color-brand); flex-shrink: 0; width: 18px; height: 18px;"></i>
-        Biomarker Balance Ratios
-      </h3>
+    <div class="ratios-wrapper" style="margin-top: 0;">
       <div class="ratios-grid">
         <!-- Sodium / Potassium -->
         <div class="ratio-card glass-card">
@@ -828,6 +852,28 @@ function renderRatiosCard(totals, microTotals) {
           <div class="ratio-breakdown">
             <span>Na: ${Math.round(na)} mg</span>
             <span>K: ${Math.round(k)} mg</span>
+          </div>
+        </div>
+
+        <!-- Carbs / Fiber -->
+        <div class="ratio-card glass-card">
+          <div class="ratio-header">
+            <span class="ratio-label">Carbs / Dietary Fiber</span>
+            <span class="ratio-badge" style="color: ${carbFiberColor}; border-color: ${carbFiberColor}33; background: ${carbFiberColor}08">${carbFiberStatus}</span>
+          </div>
+          <div class="ratio-value-display">
+            <span class="ratio-num" style="color: ${fiber > 0 ? carbFiberColor : 'var(--text-muted)'}">${fiber > 0 ? carbFiberRatio.toFixed(2) : '0.00'}</span>
+            <span class="ratio-target">Target: &lt; 10.00</span>
+          </div>
+          <div class="ratio-bar-wrapper">
+            <div class="ratio-bar-bg">
+              <div class="ratio-bar-fill" style="width: ${fiber > 0 ? Math.min(100, (carbFiberRatio / 20.0) * 100) : 0}%; background-color: ${carbFiberColor};"></div>
+            </div>
+            <div class="ratio-bar-marker" style="left: 50%;" title="Target Limit (10.00)"></div>
+          </div>
+          <div class="ratio-breakdown">
+            <span>Carbs: ${Math.round(carbs)} g</span>
+            <span>Fiber: ${Math.round(fiber)} g</span>
           </div>
         </div>
 
@@ -1053,6 +1099,30 @@ function renderDailyDashboard() {
     </div>
   `;
 
+  const subTabsHtml = `
+    <div class="daily-sub-tabs-wrapper">
+      <button class="sub-tab-btn ${state.dailySubTab === 'micros' ? 'active' : ''}" data-subtab="micros">
+        📋 Micronutrients Checklist
+      </button>
+      <button class="sub-tab-btn ${state.dailySubTab === 'ratios' ? 'active' : ''}" data-subtab="ratios">
+        🧬 Biomarker Ratios
+      </button>
+    </div>
+  `;
+
+  const activeContentHtml = state.dailySubTab === 'ratios' 
+    ? renderRatiosCard(totals, microTotals)
+    : `
+      <div class="micro-accordion-wrapper">
+        <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="activity" style="color: var(--color-brand);"></i>
+          Micronutrients & Hydration Dashboard
+          <span style="font-size: 12px; font-weight: normal; color: var(--text-muted); margin-left: auto;">(Click card for food breakdown)</span>
+        </h3>
+        ${microsHtml}
+      </div>
+    `;
+
   return `
     <div class="dashboard-view">
       <div class="date-selector-bar">
@@ -1076,16 +1146,8 @@ function renderDailyDashboard() {
         ${renderMacroRing('fat_g', 'Fats', totals.fat_g, 'g')}
       </div>
 
-      ${renderRatiosCard(totals, microTotals)}
-
-      <div class="micro-accordion-wrapper">
-        <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-          <i data-lucide="activity" style="color: var(--color-brand);"></i>
-          Micronutrients & Hydration Dashboard
-          <span style="font-size: 12px; font-weight: normal; color: var(--text-muted); margin-left: auto;">(Click card for food breakdown)</span>
-        </h3>
-        ${microsHtml}
-      </div>
+      ${subTabsHtml}
+      ${activeContentHtml}
     </div>
   `;
 }
