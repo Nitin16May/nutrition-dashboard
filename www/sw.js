@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fitmetrics-cache-v5';
+const CACHE_NAME = 'fitmetrics-cache-v6';
 const ASSETS = [
   './index.html',
   './app.css',
@@ -9,6 +9,7 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
+  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS);
@@ -26,6 +27,8 @@ self.addEventListener('activate', (e) => {
           }
         })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
 });
