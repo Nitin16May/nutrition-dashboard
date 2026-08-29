@@ -15,7 +15,7 @@
   <link rel="apple-touch-icon" href="https://img.icons8.com/color/512/dumbbell.png">
 
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="./app.css?v=15">
+  <link rel="stylesheet" href="./app.css?v=16">
   
   <!-- CDNs for External Libraries -->
   <!-- Chart.js for data visualization -->
@@ -44,13 +44,35 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+          .then(reg => {
+            console.log('PWA Service Worker registered:', reg.scope);
+            
+            // Check for updates periodically or on reload
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('New service worker installed; claiming clients...');
+                }
+              });
+            });
+          })
           .catch(err => console.log('Service Worker registration failed:', err));
+      });
+
+      // Reload page immediately when service worker changes/claims
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          console.log('Service worker changed! Reloading page to apply updates...');
+          window.location.reload();
+        }
       });
     }
   </script>
 
   <!-- Main ES Module Application Script -->
-  <script type="module" src="./app.js?v=15"></script>
+  <script type="module" src="./app.js?v=16"></script>
 </body>
 </html>
