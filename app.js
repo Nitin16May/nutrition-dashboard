@@ -1,6 +1,6 @@
 // Main application orchestrator for Nutrition & Hydration Dashboard
 import { supabase, fetchNutritionEntries, fetchUserProfile, saveUserProfile, reinitializeSupabase, supabaseUrl, supabaseKey } from './supabase-client.js';
-import { calculateTargets, getColorCode, nutrientMetadata } from './calculations.js';
+import { calculateTargets, calculateBMI, getColorCode, nutrientMetadata } from './calculations.js';
 import { renderNutritionChart, destroyChart } from './charts.js';
 
 // Helpers
@@ -40,6 +40,220 @@ const state = {
   sortOrder: 'deficient',
   dailySubTab: 'micros'
 };
+
+// Profile Storage & Multi-User Switcher Helpers
+function getSavedProfiles() {
+  try {
+    const saved = localStorage.getItem('fitmetrics_saved_profiles');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.error("Error loading saved profiles:", e);
+  }
+  const defaultProf = state.profile || {
+    id: state.supabaseId || 'nitin',
+    supabase_id: state.supabaseId || 'nitin',
+    name: 'Nitin',
+    age: 25,
+    gender: 'male',
+    height: 175,
+    weight: 70,
+    activity_level: 'moderately_active',
+    goal: 'lose'
+  };
+  saveProfilesList([defaultProf]);
+  return [defaultProf];
+}
+
+function saveProfilesList(profiles) {
+  localStorage.setItem('fitmetrics_saved_profiles', JSON.stringify(profiles));
+}
+
+function switchActiveProfile(profileId) {
+  const profiles = getSavedProfiles();
+  const targetProf = profiles.find(p => (p.id === profileId || p.supabase_id === profileId));
+  if (!targetProf) return;
+
+  state.profile = targetProf;
+  state.supabaseId = targetProf.id || targetProf.supabase_id;
+  state.targets = calculateTargets(targetProf);
+
+  localStorage.setItem('supabase_id', state.supabaseId);
+  localStorage.setItem('fitmetrics_active_profile', state.supabaseId);
+
+  closeModal();
+  state.loading = true;
+  render();
+
+  refreshDailyData().finally(() => {
+    state.loading = false;
+    render();
+    showToast(`Switched active profile to ${targetProf.name || 'User'}`);
+  });
+}
+
+function deleteProfile(profileId) {
+  let profiles = getSavedProfiles();
+  if (profiles.length <= 1) {
+    showToast("At least one profile must be retained.");
+    return;
+  }
+
+  profiles = profiles.filter(p => (p.id !== profileId && p.supabase_id !== profileId));
+  saveProfilesList(profiles);
+
+  const currentActiveId = state.profile ? (state.profile.id || state.profile.supabase_id) : '';
+  if (profileId === currentActiveId) {
+    switchActiveProfile(profiles[0].id || profiles[0].supabase_id);
+  } else {
+    openProfileManagerModal();
+    showToast("Profile deleted.");
+  }
+}
+
+function openProfileManagerModal(editProfileId = null) {
+  const profiles = getSavedProfiles();
+  const modalContainer = document.getElementById('modal-container');
+  if (!modalContainer) return;
+
+  if (editProfileId) {
+    const isNew = editProfileId === 'new';
+    const targetToEdit = isNew ? {
+      id: 'user_' + Date.now(),
+      supabase_id: 'user_' + Date.now(),
+      name: '',
+      age: 25,
+      gender: 'male',
+      height: 170,
+      weight: 65,
+      activity_level: 'moderately_active',
+      goal: 'maintain'
+    } : (profiles.find(p => (p.id === editProfileId || p.supabase_id === editProfileId)) || state.profile);
+
+    modalContainer.innerHTML = `
+      <div class="modal-overlay">
+        <div class="modal-content" style="max-width: 480px;">
+          <div class="modal-header">
+            <span class="modal-title">${isNew ? 'Add New User Profile' : `Edit Profile (${targetToEdit.name || 'User'})`}</span>
+            <button id="close-modal-btn" class="modal-close-btn" title="Close"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <form id="modal-profile-form">
+              <input type="hidden" id="modal-prof-id" value="${targetToEdit.id || targetToEdit.supabase_id}">
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Full Name / Profile Label</label>
+                <input type="text" id="modal-prof-name" class="input-field" value="${targetToEdit.name || ''}" placeholder="e.g. Nitin, Alex, Partner" required>
+              </div>
+              <div class="form-group-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Age (yrs)</label>
+                  <input type="number" id="modal-prof-age" class="input-field" value="${targetToEdit.age || 25}" min="1" max="120" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Gender</label>
+                  <select id="modal-prof-gender" class="input-field select-field">
+                    <option value="male" ${targetToEdit.gender === 'male' ? 'selected' : ''}>Male</option>
+                    <option value="female" ${targetToEdit.gender === 'female' ? 'selected' : ''}>Female</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Height (cm)</label>
+                  <input type="number" id="modal-prof-height" class="input-field" value="${targetToEdit.height || 170}" min="50" max="250" step="0.1" required>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Weight (kg)</label>
+                  <input type="number" id="modal-prof-weight" class="input-field" value="${targetToEdit.weight || 65}" min="10" max="300" step="0.1" required>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Activity Level</label>
+                <select id="modal-prof-activity" class="input-field select-field">
+                  <option value="sedentary" ${targetToEdit.activity_level === 'sedentary' ? 'selected' : ''}>Sedentary (desk job, little exercise)</option>
+                  <option value="lightly_active" ${targetToEdit.activity_level === 'lightly_active' ? 'selected' : ''}>Lightly Active (1-3 days exercise)</option>
+                  <option value="moderately_active" ${targetToEdit.activity_level === 'moderately_active' ? 'selected' : ''}>Moderately Active (3-5 days exercise)</option>
+                  <option value="very_active" ${targetToEdit.activity_level === 'very_active' ? 'selected' : ''}>Very Active (6-7 days heavy exercise)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom: 16px;">
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Daily Strategy Goal</label>
+                <select id="modal-prof-goal" class="input-field select-field">
+                  <option value="lose" ${targetToEdit.goal === 'lose' ? 'selected' : ''}>Fat Loss (-500 kcal deficit)</option>
+                  <option value="maintain" ${targetToEdit.goal === 'maintain' ? 'selected' : ''}>Maintain Weight & Recomposition</option>
+                  <option value="gain" ${targetToEdit.goal === 'gain' ? 'selected' : ''}>Muscle Gain (+500 kcal surplus)</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 16px;">
+                <button type="submit" class="btn-primary" style="flex: 1;">Save Profile</button>
+                <button type="button" id="modal-cancel-edit-btn" class="profile-action-btn">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    const currentActiveId = state.profile ? (state.profile.id || state.profile.supabase_id) : '';
+
+    const profilesHtml = profiles.map(p => {
+      const pId = p.id || p.supabase_id;
+      const isActive = pId === currentActiveId;
+      const bmiData = calculateBMI(p.height, p.weight, p.goal);
+      const initials = p.name ? p.name.substring(0, 2).toUpperCase() : 'U';
+
+      return `
+        <div class="profile-manage-card ${isActive ? 'active-profile' : ''}">
+          <div class="profile-card-left">
+            <div class="profile-avatar">${initials}</div>
+            <div>
+              <div class="profile-info-name">
+                ${p.name || 'User'}
+                ${isActive ? '<span class="status-badge status-green" style="font-size: 10px; padding: 2px 6px;">Active</span>' : ''}
+              </div>
+              <div class="profile-info-details">
+                ${p.gender === 'male' ? '👨 Male' : '👩 Female'} • ${p.age || '--'} yrs • ${p.height || '--'} cm • ${p.weight || '--'} kg
+                • <span style="color: ${bmiData.color}; font-weight: 600;">BMI ${bmiData.bmi} (${bmiData.category})</span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-card-actions">
+            ${!isActive ? `<button class="profile-action-btn btn-switch" data-switch-id="${pId}">Switch</button>` : ''}
+            <button class="profile-action-btn btn-edit" data-edit-id="${pId}">Edit</button>
+            ${profiles.length > 1 ? `<button class="profile-action-btn btn-danger" data-delete-id="${pId}" title="Delete"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i></button>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    modalContainer.innerHTML = `
+      <div class="modal-overlay">
+        <div class="modal-content" style="max-width: 520px;">
+          <div class="modal-header">
+            <span class="modal-title">Switch / Manage User Profiles</span>
+            <button id="close-modal-btn" class="modal-close-btn" title="Close"><i data-lucide="x"></i></button>
+          </div>
+          <div class="modal-body">
+            <div class="profiles-list-wrapper">
+              ${profilesHtml}
+            </div>
+            <button id="add-new-profile-btn" class="btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;">
+              <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+              Add New Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  modalContainer.style.display = 'flex';
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
 
 const nutrientImportance = {
   // Rank 1 (Critical Biomarkers)
@@ -390,6 +604,7 @@ function bindGlobalEvents() {
       }
 
       const updatedProfile = {
+        id: state.supabaseId,
         supabase_id: state.supabaseId,
         name: name || state.supabaseId,
         age,
@@ -399,6 +614,16 @@ function bindGlobalEvents() {
         activity_level,
         goal
       };
+
+      // Keep local profiles list updated
+      let profiles = getSavedProfiles();
+      const existingIdx = profiles.findIndex(p => (p.id === state.supabaseId || p.supabase_id === state.supabaseId));
+      if (existingIdx >= 0) {
+        profiles[existingIdx] = updatedProfile;
+      } else {
+        profiles.push(updatedProfile);
+      }
+      saveProfilesList(profiles);
 
       state.loading = true;
       render();
@@ -414,6 +639,60 @@ function bindGlobalEvents() {
         state.loading = false;
         render();
       }
+    }
+
+    // Modal Profile Form submission (Add/Edit profile from Switcher Modal)
+    if (e.target.id === 'modal-profile-form') {
+      e.preventDefault();
+      const profId = document.getElementById('modal-prof-id').value;
+      const name = document.getElementById('modal-prof-name').value.trim();
+      const age = parseInt(document.getElementById('modal-prof-age').value);
+      const gender = document.getElementById('modal-prof-gender').value;
+      const height = parseFloat(document.getElementById('modal-prof-height').value);
+      const weight = parseFloat(document.getElementById('modal-prof-weight').value);
+      const activity_level = document.getElementById('modal-prof-activity').value;
+      const goal = document.getElementById('modal-prof-goal').value;
+
+      const updatedProf = {
+        id: profId,
+        supabase_id: profId,
+        name: name || 'User',
+        age,
+        gender,
+        height,
+        weight,
+        activity_level,
+        goal
+      };
+
+      let profiles = getSavedProfiles();
+      const existingIdx = profiles.findIndex(p => (p.id === profId || p.supabase_id === profId));
+
+      if (existingIdx >= 0) {
+        profiles[existingIdx] = updatedProf;
+      } else {
+        profiles.push(updatedProf);
+      }
+
+      saveProfilesList(profiles);
+
+      state.profile = updatedProf;
+      state.supabaseId = profId;
+      state.targets = calculateTargets(updatedProf);
+      localStorage.setItem('supabase_id', profId);
+      localStorage.setItem('fitmetrics_active_profile', profId);
+
+      saveUserProfile(updatedProf).catch(e => console.log("Supabase profile sync note:", e));
+
+      closeModal();
+      state.loading = true;
+      render();
+
+      refreshDailyData().finally(() => {
+        state.loading = false;
+        render();
+        showToast(`Profile ${name} saved & active!`);
+      });
     }
   });
 
@@ -467,6 +746,41 @@ function bindGlobalEvents() {
     if (sortBtn) {
       state.sortOrder = sortBtn.dataset.sort;
       render();
+      return;
+    }
+
+    // Open Profile Manager Modal from Header User Badge
+    if (e.target.closest('#user-profile-badge-btn')) {
+      openProfileManagerModal();
+      return;
+    }
+
+    // Handle Profile Switcher Modal Actions
+    const switchBtn = e.target.closest('[data-switch-id]');
+    if (switchBtn) {
+      switchActiveProfile(switchBtn.dataset.switchId);
+      return;
+    }
+
+    const editBtn = e.target.closest('[data-edit-id]');
+    if (editBtn) {
+      openProfileManagerModal(editBtn.dataset.editId);
+      return;
+    }
+
+    const deleteBtn = e.target.closest('[data-delete-id]');
+    if (deleteBtn) {
+      deleteProfile(deleteBtn.dataset.deleteId);
+      return;
+    }
+
+    if (e.target.closest('#add-new-profile-btn')) {
+      openProfileManagerModal('new');
+      return;
+    }
+
+    if (e.target.closest('#modal-cancel-edit-btn')) {
+      openProfileManagerModal();
       return;
     }
 
@@ -583,9 +897,10 @@ function render() {
     <header class="app-header">
       <div class="logo-text">FitMetrics</div>
       <div class="header-actions">
-        <div class="header-user-badge">
-          <i data-lucide="user" style="width: 14px; height: 14px; margin-right: 4px;"></i>
+        <div id="user-profile-badge-btn" class="header-user-badge clickable-user-badge" title="Click to Switch or Manage Profiles">
+          <i data-lucide="user-check" style="width: 14px; height: 14px; margin-right: 4px; color: var(--color-brand);"></i>
           <span>${displayName}</span>
+          <i data-lucide="chevron-down" style="width: 12px; height: 12px; margin-left: 2px; opacity: 0.7;"></i>
         </div>
         <button id="theme-toggle-btn" class="header-btn" title="Toggle Theme">
           ${themeIcon}
@@ -1123,6 +1438,8 @@ function renderDailyDashboard() {
       </div>
     `;
 
+  const bmiInfo = calculateBMI(state.profile?.height, state.profile?.weight, state.profile?.goal);
+
   return `
     <div class="dashboard-view">
       <div class="date-selector-bar">
@@ -1139,11 +1456,31 @@ function renderDailyDashboard() {
         </button>
       </div>
 
+      <!-- BMI & Strategy Advisor Card -->
+      <div class="bmi-advisor-card glass-card">
+        <div class="bmi-advisor-header">
+          <div class="bmi-score-badge" style="background-color: ${bmiInfo.color}15; color: ${bmiInfo.color}; border: 1px solid ${bmiInfo.color}40;">
+            <span class="bmi-val">${bmiInfo.bmi > 0 ? bmiInfo.bmi : '--'}</span>
+            <span class="bmi-cat">${bmiInfo.category}</span>
+          </div>
+          <div class="bmi-advisor-meta">
+            <div class="bmi-advisor-title">BMI & Body Strategy Advisor</div>
+            <div class="bmi-ideal-range">Ideal Weight Range: <strong>${bmiInfo.minIdealWeight} - ${bmiInfo.maxIdealWeight} kg</strong> for ${state.profile?.height || '--'} cm height</div>
+          </div>
+        </div>
+        <div class="bmi-recommendation-text">
+          <i data-lucide="compass" style="width: 16px; height: 16px; color: var(--color-brand); flex-shrink: 0; margin-top: 2px;"></i>
+          <span>${bmiInfo.recommendation}</span>
+        </div>
+      </div>
+
+      <!-- 5 Macro Rings Grid (Including Fiber) -->
       <div class="macro-rings-grid">
         ${renderMacroRing('calories_kcal', 'Calories', totals.calories_kcal, 'kcal')}
         ${renderMacroRing('protein_g', 'Protein', totals.protein_g, 'g')}
         ${renderMacroRing('carbohydrates_g', 'Carbohydrates', totals.carbohydrates_g, 'g')}
         ${renderMacroRing('fat_g', 'Fats', totals.fat_g, 'g')}
+        ${renderMacroRing('dietary_fiber_g', 'Dietary Fiber', microTotals.dietary_fiber_g || 0, 'g')}
       </div>
 
       ${subTabsHtml}
@@ -1266,11 +1603,36 @@ function renderHistoryDashboard() {
 function renderProfileForm() {
   const p = state.profile || { age: 30, height: 175, weight: 70, gender: 'male', activity_level: 'moderately_active', goal: 'maintain' };
   const nameVal = p.name || state.supabaseId;
+  const bmiInfo = calculateBMI(p.height, p.weight, p.goal);
 
   return `
     <div class="profile-card glass-card">
-      <h2 class="profile-title">Personal Profile & Target Goals</h2>
-      
+      <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+        <h2 class="profile-title" style="margin-bottom: 0;">Personal Profile & Goals</h2>
+        <button id="user-profile-badge-btn" class="btn-primary" style="padding: 8px 14px; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+          <i data-lucide="users" style="width: 15px; height: 15px;"></i>
+          Switch / Manage Profiles
+        </button>
+      </div>
+
+      <!-- BMI Advisor Card inside Profile -->
+      <div class="bmi-advisor-card" style="background: rgba(128, 128, 128, 0.05); margin-bottom: 24px;">
+        <div class="bmi-advisor-header">
+          <div class="bmi-score-badge" style="background-color: ${bmiInfo.color}15; color: ${bmiInfo.color}; border: 1px solid ${bmiInfo.color}40;">
+            <span class="bmi-val">${bmiInfo.bmi > 0 ? bmiInfo.bmi : '--'}</span>
+            <span class="bmi-cat">${bmiInfo.category}</span>
+          </div>
+          <div class="bmi-advisor-meta">
+            <div class="bmi-advisor-title">BMI & Body Strategy Advisor</div>
+            <div class="bmi-ideal-range">Ideal Weight Range: <strong>${bmiInfo.minIdealWeight} - ${bmiInfo.maxIdealWeight} kg</strong> for ${p.height || '--'} cm height</div>
+          </div>
+        </div>
+        <div class="bmi-recommendation-text">
+          <i data-lucide="compass" style="width: 16px; height: 16px; color: var(--color-brand); flex-shrink: 0; margin-top: 2px;"></i>
+          <span>${bmiInfo.recommendation}</span>
+        </div>
+      </div>
+
       <div class="profile-info-alert">
         <i data-lucide="info" style="color: var(--color-brand); flex-shrink: 0; margin-right: 8px;"></i>
         <div>

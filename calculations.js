@@ -110,6 +110,60 @@ export const calculateTargets = (profile) => {
   };
 };
 
+// Calculate Body Mass Index (BMI), BMI Category, Ideal Weight Range, and Health Strategy Recommendation
+export const calculateBMI = (height_cm, weight_kg, goal = 'maintain') => {
+  if (!height_cm || !weight_kg || height_cm <= 0 || weight_kg <= 0) {
+    return {
+      bmi: 0,
+      category: 'Unknown',
+      color: 'var(--text-muted)',
+      minIdealWeight: 0,
+      maxIdealWeight: 0,
+      strategy: 'General Health',
+      recommendation: 'Enter valid height and weight in Profile to calculate your personalized BMI strategy.'
+    };
+  }
+
+  const height_m = height_cm / 100;
+  const bmiRaw = weight_kg / (height_m * height_m);
+  const bmi = parseFloat(bmiRaw.toFixed(1));
+
+  const minIdealWeight = Math.round(18.5 * height_m * height_m);
+  const maxIdealWeight = Math.round(24.9 * height_m * height_m);
+
+  let category = 'Normal Weight';
+  let color = '#10b981'; // Green
+  let strategy = 'Maintenance & Recomposition';
+  let recommendation = `Your BMI is in the healthy range (${bmi}). Strategy: Focus on maintenance calories, optimal macro ratios, and progressive resistance training. Ideal weight range for your height (${height_cm} cm) is ${minIdealWeight} - ${maxIdealWeight} kg.`;
+
+  if (bmi < 18.5) {
+    category = 'Underweight';
+    color = '#3b82f6'; // Blue
+    strategy = 'Caloric Surplus (Weight Gain)';
+    recommendation = `BMI indicates underweight (${bmi}). Strategy: Recommended moderate caloric surplus (+300 to +500 kcal) with high protein & strength training to build lean mass. Target weight range: ${minIdealWeight} - ${maxIdealWeight} kg.`;
+  } else if (bmi >= 25.0 && bmi < 30.0) {
+    category = 'Overweight';
+    color = '#f59e0b'; // Orange
+    strategy = 'Mild Fat Loss Deficit';
+    recommendation = `BMI indicates overweight (${bmi}). Strategy: Recommended mild caloric deficit (-300 to -500 kcal) with high protein (2.0g/kg) & high fiber to reduce fat while preserving muscle. Target weight range: ${minIdealWeight} - ${maxIdealWeight} kg.`;
+  } else if (bmi >= 30.0) {
+    category = 'Obese';
+    color = '#ef4444'; // Red
+    strategy = 'Structured Fat Loss Deficit';
+    recommendation = `BMI indicates obesity (${bmi}). Strategy: Recommended structured caloric deficit (-500 kcal) emphasizing nutrient-dense whole foods, hydration, and fiber. Target weight range: ${minIdealWeight} - ${maxIdealWeight} kg.`;
+  }
+
+  return {
+    bmi,
+    category,
+    color,
+    strategy,
+    minIdealWeight,
+    maxIdealWeight,
+    recommendation
+  };
+};
+
 export const getColorCode = (key, value, target) => {
   if (!target) return { color: 'var(--text-primary)', label: 'Normal', class: '' };
 
