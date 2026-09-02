@@ -443,7 +443,13 @@ body {
 
 @media (min-width: 768px) {
   .macro-rings-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .macro-rings-grid {
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
@@ -1368,6 +1374,196 @@ body {
   border-radius: 2px;
   box-shadow: 0 0 8px var(--color-brand-glow);
 }
+
+/* Interactive Header User Badge */
+.clickable-user-badge {
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast) ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.clickable-user-badge:hover {
+  background: rgba(128, 128, 128, 0.15);
+  border-color: var(--color-brand);
+  color: var(--color-brand);
+}
+
+/* BMI & Health Strategy Advisor Card */
+.bmi-advisor-card {
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+}
+
+.bmi-advisor-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.bmi-score-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.bmi-score-badge .bmi-val {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.bmi-score-badge .bmi-cat {
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bmi-advisor-meta {
+  flex: 1;
+}
+
+.bmi-advisor-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.bmi-ideal-range {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+.bmi-recommendation-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(128, 128, 128, 0.08);
+}
+
+/* Multi-Profile Switcher Modal Cards */
+.profiles-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.profile-manage-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(128, 128, 128, 0.04);
+  border: 1px solid var(--card-border);
+  transition: all var(--transition-fast) ease;
+}
+
+.profile-manage-card.active-profile {
+  border-color: var(--color-brand);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.profile-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-brand-glow);
+  color: var(--color-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.profile-info-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-info-details {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.profile-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-action-btn {
+  background: rgba(128, 128, 128, 0.08);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+}
+
+.profile-action-btn:hover {
+  background: rgba(128, 128, 128, 0.18);
+  color: var(--text-primary);
+}
+
+.profile-action-btn.btn-switch {
+  background: var(--color-brand);
+  color: white;
+  border-color: var(--color-brand);
+}
+
+.profile-action-btn.btn-switch:hover {
+  box-shadow: 0 4px 12px var(--color-brand-glow);
+}
+
+.profile-action-btn.btn-danger {
+  color: var(--color-red);
+}
+
+.profile-action-btn.btn-danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: var(--color-red);
+}
+
 
 
 
