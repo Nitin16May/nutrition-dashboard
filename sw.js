@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fitmetrics-cache-v7';
+const CACHE_NAME = 'fitmetrics-cache-v8';
 const ASSETS = [
   './index.html',
   './app.css',
