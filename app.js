@@ -1312,18 +1312,19 @@ function renderDailyDashboard() {
     calories_kcal: 0,
     protein_g: 0,
     carbohydrates_g: 0,
-    fat_g: 0
+    fat_g: 0,
+    dietary_fiber_g: 0
   };
 
   const microTotals = {};
   Object.keys(nutrientMetadata).forEach(key => {
-    if (nutrientMetadata[key].group !== 'Macros') {
+    if (nutrientMetadata[key].group !== 'Macros' || key === 'dietary_fiber_g') {
       microTotals[key] = 0;
     }
   });
 
   state.dailyEntries.forEach(entry => {
-    ['calories_kcal', 'protein_g', 'carbohydrates_g', 'fat_g'].forEach(key => {
+    ['calories_kcal', 'protein_g', 'carbohydrates_g', 'fat_g', 'dietary_fiber_g'].forEach(key => {
       const val = parseFloat(entry[key]);
       if (!isNaN(val)) totals[key] += val;
     });
@@ -1460,7 +1461,7 @@ function renderDailyDashboard() {
         ${renderMacroRing('protein_g', 'Protein', totals.protein_g, 'g')}
         ${renderMacroRing('carbohydrates_g', 'Carbohydrates', totals.carbohydrates_g, 'g')}
         ${renderMacroRing('fat_g', 'Fats', totals.fat_g, 'g')}
-        ${renderMacroRing('dietary_fiber_g', 'Dietary Fiber', microTotals.dietary_fiber_g || 0, 'g')}
+        ${renderMacroRing('dietary_fiber_g', 'Dietary Fiber', totals.dietary_fiber_g, 'g')}
       </div>
 
       ${subTabsHtml}
