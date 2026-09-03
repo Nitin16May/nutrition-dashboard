@@ -1438,8 +1438,6 @@ function renderDailyDashboard() {
       </div>
     `;
 
-  const bmiInfo = calculateBMI(state.profile?.height, state.profile?.weight, state.profile?.goal);
-
   return `
     <div class="dashboard-view">
       <div class="date-selector-bar">
@@ -1454,24 +1452,6 @@ function renderDailyDashboard() {
         <button id="next-date-btn" class="date-btn" title="Next Day">
           <i data-lucide="chevron-right"></i>
         </button>
-      </div>
-
-      <!-- BMI & Strategy Advisor Card -->
-      <div class="bmi-advisor-card glass-card">
-        <div class="bmi-advisor-header">
-          <div class="bmi-score-badge" style="background-color: ${bmiInfo.color}15; color: ${bmiInfo.color}; border: 1px solid ${bmiInfo.color}40;">
-            <span class="bmi-val">${bmiInfo.bmi > 0 ? bmiInfo.bmi : '--'}</span>
-            <span class="bmi-cat">${bmiInfo.category}</span>
-          </div>
-          <div class="bmi-advisor-meta">
-            <div class="bmi-advisor-title">BMI & Body Strategy Advisor</div>
-            <div class="bmi-ideal-range">Ideal Weight Range: <strong>${bmiInfo.minIdealWeight} - ${bmiInfo.maxIdealWeight} kg</strong> for ${state.profile?.height || '--'} cm height</div>
-          </div>
-        </div>
-        <div class="bmi-recommendation-text">
-          <i data-lucide="compass" style="width: 16px; height: 16px; color: var(--color-brand); flex-shrink: 0; margin-top: 2px;"></i>
-          <span>${bmiInfo.recommendation}</span>
-        </div>
       </div>
 
       <!-- 5 Macro Rings Grid (Including Fiber) -->
@@ -1623,8 +1603,13 @@ function renderProfileForm() {
             <span class="bmi-cat">${bmiInfo.category}</span>
           </div>
           <div class="bmi-advisor-meta">
-            <div class="bmi-advisor-title">BMI & Body Strategy Advisor</div>
-            <div class="bmi-ideal-range">Ideal Weight Range: <strong>${bmiInfo.minIdealWeight} - ${bmiInfo.maxIdealWeight} kg</strong> for ${p.height || '--'} cm height</div>
+            <div class="bmi-advisor-title" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span>BMI & Body Strategy</span>
+              <span class="status-badge" style="background-color: ${bmiInfo.color}20; color: ${bmiInfo.color}; border: 1px solid ${bmiInfo.color}50; font-size: 11px; padding: 2px 8px;">
+                Suggested: ${bmiInfo.suggestedGoal}
+              </span>
+            </div>
+            <div class="bmi-ideal-range" style="margin-top: 4px;">Ideal Weight Range: <strong>${bmiInfo.minIdealWeight} - ${bmiInfo.maxIdealWeight} kg</strong> for ${p.height || '--'} cm height</div>
           </div>
         </div>
         <div class="bmi-recommendation-text">

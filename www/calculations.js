@@ -119,6 +119,7 @@ export const calculateBMI = (height_cm, weight_kg, goal = 'maintain') => {
       color: 'var(--text-muted)',
       minIdealWeight: 0,
       maxIdealWeight: 0,
+      suggestedGoal: 'Maintain Weight',
       strategy: 'General Health',
       recommendation: 'Enter valid height and weight in Profile to calculate your personalized BMI strategy.'
     };
@@ -133,30 +134,35 @@ export const calculateBMI = (height_cm, weight_kg, goal = 'maintain') => {
 
   let category = 'Normal Weight';
   let color = '#10b981'; // Green
-  let strategy = 'Maintenance & Recomposition';
-  let recommendation = `Your BMI is in the healthy range (${bmi}). Strategy: Focus on maintenance calories, optimal macro ratios, and progressive resistance training. Ideal weight range for your height (${height_cm} cm) is ${minIdealWeight} - ${maxIdealWeight} kg.`;
+  let suggestedGoal = 'Maintain Weight';
+  let strategy = 'Maintain Weight (TDEE Calories)';
+  let recommendation = `Your BMI (${bmi}) is in the healthy range. Suggested Goal: Maintain Weight or Body Recomposition. Focus on keeping calories near your TDEE (${minIdealWeight} - ${maxIdealWeight} kg target weight range).`;
 
   if (bmi < 18.5) {
     category = 'Underweight';
     color = '#3b82f6'; // Blue
-    strategy = 'Caloric Surplus (Weight Gain)';
-    recommendation = `BMI indicates underweight (${bmi}). Strategy: Recommended moderate caloric surplus (+300 to +500 kcal) with high protein & strength training to build lean mass. Target weight range: ${minIdealWeight} - ${maxIdealWeight} kg.`;
+    suggestedGoal = 'Weight Gain';
+    strategy = 'Weight Gain (+300 to +500 kcal Surplus)';
+    recommendation = `Your BMI (${bmi}) indicates underweight. Suggested Goal: Weight Gain. Recommended surplus of +300 to +500 kcal/day with strength training to reach target weight range (${minIdealWeight} - ${maxIdealWeight} kg).`;
   } else if (bmi >= 25.0 && bmi < 30.0) {
     category = 'Overweight';
     color = '#f59e0b'; // Orange
-    strategy = 'Mild Fat Loss Deficit';
-    recommendation = `BMI indicates overweight (${bmi}). Strategy: Recommended mild caloric deficit (-300 to -500 kcal) with high protein (2.0g/kg) & high fiber to reduce fat while preserving muscle. Target weight range: ${minIdealWeight} - ${maxIdealWeight} kg.`;
+    suggestedGoal = 'Fat Loss';
+    strategy = 'Fat Loss (-300 to -500 kcal Deficit)';
+    recommendation = `Your BMI (${bmi}) indicates overweight. Suggested Goal: Fat Loss. Recommended deficit of -300 to -500 kcal/day with high protein & fiber to reach target weight range (${minIdealWeight} - ${maxIdealWeight} kg).`;
   } else if (bmi >= 30.0) {
     category = 'Obese';
     color = '#ef4444'; // Red
-    strategy = 'Structured Fat Loss Deficit';
-    recommendation = `BMI indicates obesity (${bmi}). Strategy: Recommended structured caloric deficit (-500 kcal) emphasizing nutrient-dense whole foods, hydration, and fiber. Target weight range: ${minIdealWeight} - ${maxIdealWeight} kg.`;
+    suggestedGoal = 'Fat Loss';
+    strategy = 'Fat Loss (-500 kcal Deficit)';
+    recommendation = `Your BMI (${bmi}) indicates obesity. Suggested Goal: Fat Loss. Recommended structured deficit of -500 kcal/day with whole foods & daily activity to reach target weight range (${minIdealWeight} - ${maxIdealWeight} kg).`;
   }
 
   return {
     bmi,
     category,
     color,
+    suggestedGoal,
     strategy,
     minIdealWeight,
     maxIdealWeight,
